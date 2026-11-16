@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    container_name: ness_soft_db_v1
+    environment:
+      POSTGRES_USER: ness_soft_php
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: ness_soft_php
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./database/scripts/db/init:/docker-entrypoint-initdb.d:ro
+
+
