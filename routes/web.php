@@ -6,14 +6,13 @@ use App\Http\Controllers\Seguridad\RegistroController;
 use App\Http\Controllers\Seguridad\TwoFactorController;
 use App\Http\Controllers\Seguridad\UsuarioController;
 use App\Http\Middleware\CheckSessionTimeout;
+use App\Http\Middleware\EnsureRoleHierarchyAccess;
 use App\Http\Middleware\SetPostgresSessionContext;
 use App\Models\Seguridad\Usuario;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use App\Http\Middleware\EnsureRoleHierarchyAccess;
-
 
 Route::inertia('/', 'welcome')->name('home');
 
@@ -33,7 +32,7 @@ Route::middleware('guest')->group(function () {
         ->name('2fa.whatsapp.verify');
     Route::post('/2fa/whatsapp/reenviar', [TwoFactorController::class, 'resend'])
         ->middleware('throttle:2fa')
-        ->name('2fa.whatsapp.reenviar');
+        ->name('2fa.whatsapp.resend');
 });
 
 // Rutas autenticadas con inactividad y contexto PostgreSQL
@@ -72,7 +71,7 @@ Route::middleware(['auth', CheckSessionTimeout::class, SetPostgresSessionContext
         return view('dashboard', compact('kpis'));
     })->name('dashboard');
 
-    // Módulo comercial: renderiza la vista existente con valores por defecto mientras se integra el controlador
+    // Módulo comercial
     Route::get('/comercial/clientes', function () {
         $tieneTabla = Schema::hasTable('comercial.clientes');
 
@@ -115,12 +114,15 @@ Route::middleware(['auth', CheckSessionTimeout::class, SetPostgresSessionContext
     })->name('comercial.clientes.index');
 
     // Usuarios y roles conectados a PostgreSQL
-    Route::get('/seguridad/usuarios', [UsuarioController::class, 'index'])
-        ->middleware('can:gestionar-usuarios')
-        ->name('seguridad.usuarios.index');
-    Route::patch('/seguridad/usuarios/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])
-        ->middleware('can:gestionar-usuarios')
-        ->name('seguridad.usuarios.toggle-estado');
+    Route::prefix('seguridad/usuarios')
+        ->name('seguridad.usuarios.')
+        ->middleware(['can:gestionar-usuarios', EnsureRoleHierarchyAccess::class . ':ADSIS,AC'])
+        ->group(function () {
+            Route::get('/', [UsuarioController::class, 'index'])->name('index');
+            Route::post('/', [UsuarioController::class, 'store'])->name('store');
+            Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
+            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
+        });
 
     // Monitoreo de Seguridad y Ciberseguridad (solo ADSIS)
     Route::prefix('seguridad/ciberseguridad')
@@ -128,39 +130,6 @@ Route::middleware(['auth', CheckSessionTimeout::class, SetPostgresSessionContext
         ->middleware('can:ver-ciberseguridad')
         ->group(function () {
             Route::get('/', [CiberseguridadController::class, 'index'])->name('index');
-        });
-    Route::prefix('seguridad/usuarios')
-        ->name('seguridad.usuarios.')
-        ->middleware(EnsureRoleHierarchyAccess::class . ':ADSIS,AC')
-        ->group(function () {
-            Route::get('/', [UsuarioController::class, 'index'])->name('index');
-            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
-        });
-
-    Route::prefix('seguridad/ciberseguridad')
-        ->name('seguridad.ciberseguridad.')
-        ->middleware('can:ver-ciberseguridad')
-        ->group(function () {
-            Route::get('/', [CiberseguridadController::class, 'index'])->name('index');
-        });
-
-    Route::prefix('seguridad/usuarios')
-        ->name('seguridad.usuarios.')
-        ->middleware(EnsureRoleHierarchyAccess::class . ':ADSIS,AC')
-        ->group(function () {
-            Route::get('/', [UsuarioController::class, 'index'])->name('index');
-            Route::post('/', [UsuarioController::class, 'store'])->name('store');
-            Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
-            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
-        });
-    Route::prefix('seguridad/usuarios')
-        ->name('seguridad.usuarios.')
-        ->middleware(EnsureRoleHierarchyAccess::class . ':ADSIS,AC')
-        ->group(function () {
-            Route::get('/', [UsuarioController::class, 'index'])->name('index');
-            Route::post('/', [UsuarioController::class, 'store'])->name('store');
-            Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
-            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
         });
 });
 
