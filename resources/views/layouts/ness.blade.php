@@ -5,15 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'NESS SOFT') — CRM y Seguridad</title>
-    @vite(['resources/css/app.css', 'resources/js/app.tsx'])
+    @vite(['resources/css/app.css'])
     @stack('styles')
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
     @auth
-        <nav class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between">
-            <div class="flex items-center gap-6">
-                <a href="{{ route('dashboard') }}" class="font-bold tracking-wider text-sky-400 text-lg">
-                    NESS SOFT
+        <nav class="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-3">
+            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-3 sm:gap-6">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-2 font-bold tracking-wider text-sky-400 text-lg">
+                    <img src="{{ asset('img/logo.png') }}" alt="" class="h-8 w-8 object-contain rounded-md bg-white p-0.5">
+                    <span>NESS SOFT</span>
                 </a>
                 <a href="{{ route('dashboard') }}"
                    class="text-sm {{ request()->routeIs('dashboard') ? 'text-white font-semibold' : 'text-slate-300 hover:text-white' }}">
@@ -31,8 +33,8 @@
                 @endcan
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="text-right">
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:block text-right">
                     <div class="text-sm font-semibold text-white">{{ auth()->user()->nombres }}</div>
                     <div class="text-xs text-slate-400">
                         Rol: {{ optional(auth()->user()->rol)->codigo ?? 'N/A' }}
@@ -48,6 +50,7 @@
                         Cerrar sesión
                     </button>
                 </form>
+            </div>
             </div>
         </nav>
     @endauth

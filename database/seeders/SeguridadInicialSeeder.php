@@ -25,7 +25,11 @@ class SeguridadInicialSeeder extends Seeder
 
         $idAdsis = DB::table('seguridad.roles')->where('codigo', 'ADSIS')->value('id_rol');
 
-        $hashArgon2id = Hash::driver('argon2id')->make('NessAdmin2026!');
+        $hashArgon2id = Hash::driver('argon2id')->make('NessAdmin2026!', [
+            'memory' => 65536,
+            'time' => 4,
+            'threads' => 1,
+        ]);
 
         DB::table('seguridad.usuarios')->updateOrInsert(
             ['username' => 'admin.ness'],

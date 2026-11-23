@@ -1,16 +1,15 @@
---=============================================================================
---NESS SOFT: SEGURIDAD, AUDITORIA Y ENCAPSULAMIENTO EN POSTGRESQL
---Archivo: Database/sql/Seguridad_triggers_fns.sql
+-- =============================================================================
+-- NESS SOFT: SEGURIDAD, AUDITORIA Y ENCAPSULAMIENTO EN POSTGRESQL
+-- Archivo: database/sql/Seguridad_triggers_fns.sql
 -- =============================================================================
 
 SET TIME ZONE 'America/Bogota';
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
---==============================================================================
--- 1. funcion centalizada para insertar en bitacora con hash de integridad
--- cumpliento con las RF--006, RFN-003 Y RFN-004
---==============================================================================
-
+-- =============================================================================
+-- 1. FUNCIÓN CENTRALIZADA PARA INSERTAR EN BITÁCORA CON HASH DE INTEGRIDAD
+--    Cumple RF-006, RNF-003 y RNF-044
+-- =============================================================================
 CREATE OR REPLACE FUNCTION seguridad.fn_registrar_evento(
     p_tipo_evento     tipo_evento_bitacora_enum,
     p_id_usuario      INT,
@@ -57,6 +56,7 @@ BEGIN
         COALESCE(p_direccion_ip, ''),
         COALESCE(p_sesion::TEXT, ''),
         COALESCE(p_severidad, ''),
+        COALESCE(p_observaciones, ''),
         to_char(v_fecha, 'YYYY-MM-DD"T"HH24:MI:SS.US')
     );
 
@@ -79,14 +79,10 @@ BEGIN
 END;
 $$;
 
-
---==============================================================================
---TRIGGER DESPUES DEL INSERT PARA GARANTIZAR QUE CUALQUIER INSERCION  DIRECTA EN:
--- Segurudad.bitacora_eventos, tambien calcule su hash_integridad.
---===============================================================================
-
--- Trigger BEFORE INSERT para garantizar que CUALQUIER inserción directa
--- en seguridad.bitacora_eventos también calcule su hash_integridad.
+-- =============================================================================
+-- TRIGGER BEFORE INSERT PARA GARANTIZAR QUE CUALQUIER INSERCIÓN DIRECTA EN
+-- seguridad.bitacora_eventos TAMBIÉN CALCULE SU hash_integridad
+-- =============================================================================
 CREATE OR REPLACE FUNCTION seguridad.fn_bitacora_before_insert()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -120,6 +116,7 @@ BEGIN
         COALESCE(NEW.direccion_ip, ''),
         COALESCE(NEW.sesion::TEXT, ''),
         COALESCE(NEW.severidad, ''),
+        COALESCE(NEW.observaciones, ''),
         to_char(NEW.fecha_evento, 'YYYY-MM-DD"T"HH24:MI:SS.US')
     );
 
@@ -133,9 +130,6 @@ CREATE TRIGGER trg_bitacora_hash_insert
 BEFORE INSERT ON seguridad.bitacora_eventos
 FOR EACH ROW
 EXECUTE FUNCTION seguridad.fn_bitacora_before_insert();
-
-
-
 
 -- ----------------------------------------------------------------------------
 -- 2. TRG-SEC-001: INMUTABILIDAD DE BITÁCORA (IMPEDIR UPDATE / DELETE / TRUNCATE)
@@ -172,7 +166,6 @@ BEFORE TRUNCATE ON seguridad.bitacora_eventos
 FOR STATEMENT
 EXECUTE FUNCTION seguridad.fn_proteger_bitacora();
 
-
 -- ----------------------------------------------------------------------------
 -- 3. TRG-SEC-004: MANTENER fecha_actualizacion EN SEGURIDAD
 -- ----------------------------------------------------------------------------
@@ -191,7 +184,6 @@ CREATE TRIGGER trg_usuarios_fecha_actualizacion
 BEFORE UPDATE ON seguridad.usuarios
 FOR EACH ROW
 EXECUTE FUNCTION seguridad.fn_set_fecha_actualizacion();
-
 
 -- ----------------------------------------------------------------------------
 -- 4. TRG-SEC-002: AUDITORÍA DE CAMBIOS RELEVANTES EN seguridad.usuarios
@@ -434,10 +426,10 @@ DECLARE
     v_ahora TIMESTAMP := (now() AT TIME ZONE 'America/Bogota');
 BEGIN
     UPDATE seguridad.usuarios
-    SET intentos_fallidos = 0,
-    bloqueo_hasta = NULL,
-    ultimo_acceso = v_ahora
-    WHERE id_usuario = p_id_usuario;
+       SET intentos_fallidos = 0,
+           bloqueo_hasta = NULL,
+           ultimo_acceso = v_ahora
+     WHERE id_usuario = p_id_usuario;
 
     PERFORM seguridad.fn_registrar_evento(
         'SEGURIDAD'::tipo_evento_bitacora_enum,
@@ -457,7 +449,6 @@ BEGIN
 END;
 $$;
 
-
 -- AUN NOOOOOOOOOO POR QUE HAY QUE COORDINAR CON NICOLD Y SERGIO --------------
 -- ----------------------------------------------------------------------------
 -- 8. POLÍTICA DE PRIVILEGIOS PARA EL USUARIO DE APLICACIÓN LARAVEL (ness_app)
@@ -473,19 +464,14 @@ $$;
 -- GRANT EXECUTE ON FUNCTION seguridad.fn_registrar_intento_fallido(INT, INT, INT, VARCHAR, VARCHAR) TO ness_app;
 -- GRANT EXECUTE ON FUNCTION seguridad.fn_reiniciar_intentos_login(INT, VARCHAR, VARCHAR, UUID) TO ness_app;
 
-
-
 -- ----------------------------------------------------------------------------------------
-
 -- -- AUN NOOOOOOOOOO POR QUE HAY QUE COORDINAR CON NICOLD Y SERGIO --------------
 -- -------------------------------------------------------------------------------
 -- 9. REFERENCIA COMENTADA: REGLAS CRUZADAS SEGURIDAD <-> COMERCIAL
 -- Alcance normativo: RF-009, RN-09, HU-011 (LEY 1581 de 2012 -HABEAS DATA)
--- NOTA: SE DEJA COMENTADO POR QUE EL DOMINIO COMERCIAL CORRESPONDE AL FRENTE COMERCIAL; 
+-- NOTA: SE DEJA COMENTADO POR QUE EL DOMINIO COMERCIAL CORRESPONDE AL FRENTE COMERCIAL;
 -- QUEDA AQUI COMO REFERENCIA DE TRAZABILIDAD DE SEGURIDAD.
 -- -------------------------------------------------------------------------------
-
-
 -- CREATE OR REPLACE FUNCTION comercial.fn_auditar_habeas_data()
 -- RETURNS TRIGGER
 -- LANGUAGE plpgsql
@@ -560,5 +546,4 @@ $$;
 -- CREATE TRIGGER trg_validar_consentimiento_actividad
 -- BEFORE INSERT ON comercial.actividades
 -- FOR EACH ROW
--- EXECUTE FUNCTION comercial.fn_validar_consentimiento_actividad();
-
+-- EXECUTE FUNCTION comercial.fn_validar_consentimiento_actividad();|

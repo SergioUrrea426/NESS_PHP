@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Comercial\ClientesController;
 use App\Http\Controllers\Seguridad\AuthController;
 use App\Http\Controllers\Seguridad\CiberseguridadController;
 use App\Http\Controllers\Seguridad\RegistroController;
@@ -17,18 +18,24 @@ Route::inertia('/', 'welcome')->name('home');
 // Rutas públicas de autenticación, registro y 2FA WhatsApp
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
+    Route::post('/login', [AuthController::class, 'login'])
+        ->middleware('throttle:login')
+        ->name('login.attempt');
 
     Route::get('/registro', [RegistroController::class, 'show'])->name('register.show');
     Route::post('/registro', [RegistroController::class, 'store'])->name('register.store');
 
     Route::get('/2fa/whatsapp', [TwoFactorController::class, 'show'])->name('2fa.whatsapp.show');
-    Route::post('/2fa/whatsapp/verificar', [TwoFactorController::class, 'verify'])->name('2fa.whatsapp.verify');
-    Route::post('/2fa/whatsapp/reenviar', [TwoFactorController::class, 'resend'])->name('2fa.whatsapp.resend');
+    Route::post('/2fa/whatsapp/verificar', [TwoFactorController::class, 'verify'])
+        ->middleware('throttle:2fa')
+        ->name('2fa.whatsapp.verify');
+    Route::post('/2fa/whatsapp/reenviar', [TwoFactorController::class, 'resend'])
+        ->middleware('throttle:2fa')
+        ->name('2fa.whatsapp.resend');
 });
 
 // Rutas autenticadas con inactividad y contexto PostgreSQL
-Route::middleware(['auth', 'verified', CheckSessionTimeout::class, SetPostgresSessionContext::class])->group(function () {
+Route::middleware(['auth', CheckSessionTimeout::class, SetPostgresSessionContext::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Dashboard con datos reales desde PostgreSQL
@@ -63,10 +70,16 @@ Route::middleware(['auth', 'verified', CheckSessionTimeout::class, SetPostgresSe
         return view('dashboard', compact('kpis'));
     })->name('dashboard');
 
+    // Módulo comercial
+   // Route::get('/comercial/clientes', [ClientesController::class, 'index'])
+   //     ->name('comercial.clientes.index');
+
     // Usuarios y roles conectados a PostgreSQL
     Route::get('/seguridad/usuarios', [UsuarioController::class, 'index'])
+        ->middleware('can:gestionar-usuarios')
         ->name('seguridad.usuarios.index');
     Route::patch('/seguridad/usuarios/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])
+        ->middleware('can:gestionar-usuarios')
         ->name('seguridad.usuarios.toggle-estado');
 
     // Monitoreo de Seguridad y Ciberseguridad (solo ADSIS)

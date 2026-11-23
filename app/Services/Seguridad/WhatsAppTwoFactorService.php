@@ -1,5 +1,4 @@
 <?php
-// app/Services/Seguridad/WhatsAppTwoFactorService.php
 
 namespace App\Services\Seguridad;
 
@@ -28,6 +27,7 @@ class WhatsAppTwoFactorService
                 'id_usuario' => $usuario->id_usuario,
                 'codigo_hash' => hash('sha256', $codigo),
                 'intentos' => 0,
+                'expira_en' => now('America/Bogota')->addSeconds($ttlSegundos)->timestamp,
             ],
             now('America/Bogota')->addSeconds($ttlSegundos)
         );
@@ -46,7 +46,10 @@ class WhatsAppTwoFactorService
         $key = $this->cacheKey($desafioId);
         $payload = Cache::get($key);
 
-        if (!$payload || (int) $payload['id_usuario'] !== (int) $usuario->id_usuario) {
+        if (!$payload
+            || (int) $payload['id_usuario'] !== (int) $usuario->id_usuario
+            || (int) ($payload['expira_en'] ?? 0) < now('America/Bogota')->timestamp) {
+            Cache::forget($key);
             return false;
         }
 
@@ -60,11 +63,11 @@ class WhatsAppTwoFactorService
 
         if (!$esValido) {
             $payload['intentos'] = (int) $payload['intentos'] + 1;
-            Cache::put($key, $payload, now('America/Bogota')->addMinutes(5));
+            $ttlRestante = max(1, (int) ($payload['expira_en'] - now('America/Bogota')->timestamp));
+            Cache::put($key, $payload, now('America/Bogota')->addSeconds($ttlRestante));
             return false;
         }
 
-        // Uso único: eliminamos el código de caché inmediatamente
         Cache::forget($key);
 
         if ($activar2fa && !$usuario->activo_2fa) {

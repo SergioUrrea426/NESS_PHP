@@ -104,6 +104,12 @@ class TwoFactorController extends Controller
             'enviado' => $nuevoDesafio['enviado'],
         ]);
 
+        if (!$nuevoDesafio['enviado']) {
+            return back()->withErrors([
+                'codigo_otp' => 'No fue posible enviar el código por WhatsApp. Verifica el teléfono registrado e intenta nuevamente.',
+            ]);
+        }
+
         return back()->with('status', 'Se ha enviado un nuevo código OTP a tu WhatsApp.');
     }
 }

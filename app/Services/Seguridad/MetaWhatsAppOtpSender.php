@@ -15,10 +15,14 @@ class MetaWhatsAppOtpSender implements WhatsAppOtpSenderInterface
         $telefonoNormalizado = preg_replace('/\D+/', '', (string) $usuario->telefono);
 
         if ($driver !== 'meta') {
+            if (!app()->environment('local')) {
+                Log::warning('[NESS 2FA WhatsApp] Controlador log rechazado fuera de local.');
+                return false;
+            }
+
             Log::info('[NESS 2FA WhatsApp - DEV]', [
                 'usuario_id' => $usuario->id_usuario,
                 'username' => $usuario->username,
-                'telefono' => $telefonoNormalizado,
                 'otp' => $codigo,
                 'vigencia_min' => $minutosVigencia,
             ]);

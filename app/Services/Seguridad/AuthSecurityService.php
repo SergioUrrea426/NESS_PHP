@@ -63,7 +63,15 @@ class AuthSecurityService
             ];
         }
 
-        if (!Hash::check($password, $usuario->password_hash)) {
+        $hashGuardado = (string) $usuario->password_hash;
+
+        $passwordValido = str_starts_with($hashGuardado, '$argon2')
+            ? Hash::driver('argon2id')->check($password, $hashGuardado)
+            : (str_starts_with($hashGuardado, '$2y$') || str_starts_with($hashGuardado, '$2a$') || str_starts_with($hashGuardado, '$2b$')
+                ? Hash::check($password, $hashGuardado)
+                : false);
+
+        if (!$passwordValido) {
             $maxIntentos = (int) config('ness_seguridad.max_intentos_login', 5);
             $minutosBloqueo = (int) config('ness_seguridad.minutos_bloqueo_login', 15);
 

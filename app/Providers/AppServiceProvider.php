@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -62,6 +65,21 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('ver-ciberseguridad', function ($usuario) {
             return strtoupper((string) optional($usuario->rol)->codigo) === 'ADSIS';
+        });
+
+        Gate::define('gestionar-usuarios', function ($usuario) {
+            return strtoupper((string) optional($usuario->rol)->codigo) === 'ADSIS';
+        });
+
+        RateLimiter::for('login', function (Request $request) {
+            $identificador = strtolower(trim((string) $request->input('username', '')));
+            return Limit::perMinute(5)->by($identificador.'|'.$request->ip());
+        });
+
+        RateLimiter::for('2fa', function (Request $request) {
+            $pending = $request->session()->get('ness_2fa_pending');
+            $usuarioId = is_array($pending) ? (int) ($pending['id_usuario'] ?? 0) : 0;
+            return Limit::perMinute(5)->by($usuarioId.'|'.$request->ip());
         });
     }
 

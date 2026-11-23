@@ -8,7 +8,7 @@
 @endpush
 
 @section('content')
-<div class="min-h-[82vh] flex items-center justify-center p-4 rounded-3xl bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-200 via-sky-700 to-slate-950">
+<div class="min-h-[82vh] flex items-center justify-center p-2 sm:p-4 rounded-3xl">
     <main class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200 text-slate-800">
 
         <header class="px-8 pt-8 pb-4 text-center">
@@ -28,6 +28,16 @@
             @if (session('status'))
                 <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-medium">
                     {{ session('status') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
+                    <ul class="list-disc list-inside space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 

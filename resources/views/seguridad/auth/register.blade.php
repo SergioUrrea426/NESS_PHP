@@ -7,8 +7,8 @@
 @endpush
 
 @section('content')
-<div class="min-h-[82vh] flex items-center justify-center p-4 rounded-3xl">
-    <main class="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+<div class="min-h-[82vh] flex items-center justify-center p-2 sm:p-4 rounded-3xl">
+    <main class="w-full max-w-lg bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
         <header class="px-8 pt-8 pb-4 text-center">
             <div class="flex justify-center mb-3">
                 <img src="{{ asset('img/NESSlogoopti.png') }}" alt="NESS SOFT Logo" class="h-20 w-auto object-contain">

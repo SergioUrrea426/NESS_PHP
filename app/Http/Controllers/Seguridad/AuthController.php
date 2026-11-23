@@ -30,6 +30,7 @@ class AuthController extends Controller
             'username.required' => 'Ingresa tu nombre de usuario o correo institucional.',
             'password.required' => 'Ingresa tu contraseña.',
         ]);
+        $credentials['username'] = strtolower(trim($credentials['username']));
 
         $ip = $request->ip();
         $userAgent = substr((string) $request->userAgent(), 0, 255);
@@ -67,6 +68,12 @@ class AuthController extends Controller
                 'debe_activar_2fa' => $resultado['debe_activar_2fa'],
                 'enviado' => $resultado['desafio']['enviado'],
             ]);
+
+            if (!$resultado['desafio']['enviado']) {
+                return redirect()
+                    ->route('2fa.whatsapp.show')
+                    ->withErrors(['codigo_otp' => 'No fue posible enviar el código por WhatsApp. Verifica el teléfono registrado e intenta nuevamente.']);
+            }
 
             return redirect()
                 ->route('2fa.whatsapp.show')

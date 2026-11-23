@@ -7,6 +7,7 @@ use App\Models\Seguridad\Rol;
 use App\Models\Seguridad\Usuario;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class UsuarioController extends Controller
@@ -56,6 +57,17 @@ class UsuarioController extends Controller
 
     public function toggleEstado(Usuario $usuario): RedirectResponse
     {
+        Gate::authorize('gestionar-usuarios');
+
+        if ((int) $usuario->id_usuario === (int) request()->user()->id_usuario) {
+            return back()->withErrors(['estado' => 'No puedes desactivar tu propia cuenta.']);
+        }
+
+        if (strtoupper((string) optional($usuario->rol)->codigo) === 'ADSIS'
+            && strtoupper((string) $usuario->estado) === 'ACTIVO') {
+            return back()->withErrors(['estado' => 'No se puede desactivar una cuenta ADSIS desde este módulo.']);
+        }
+
         $nuevoEstado = strtoupper((string) $usuario->estado) === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
 
         $usuario->update([
