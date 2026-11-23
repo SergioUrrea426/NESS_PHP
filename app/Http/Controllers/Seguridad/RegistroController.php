@@ -45,40 +45,47 @@ class RegistroController extends Controller
             'threads' => 1,
         ]);
 
-        $usuario = Usuario::create([
-            'id_rol' => $rolInicial->id_rol,
-            'nombres' => trim($datos['nombres']),
-            'username' => strtolower(trim($datos['username'])),
-            'email' => strtolower(trim($datos['email'])),
-            'password_hash' => $hashArgon2id,
-            'telefono' => !empty($datos['telefono']) ? trim($datos['telefono']) : null,
-            'estado' => 'ACTIVO',
-            'activo_2fa' => false,
-            'requiere_cambio_password' => false,
-        ]);
+        $usuario = DB::transaction(function () use ($request, $datos, $rolInicial, $hashArgon2id) {
+            $nuevoUsuario = Usuario::create([
+                'id_rol' => $rolInicial->id_rol,
+                'nombres' => trim($datos['nombres']),
+                'username' => strtolower(trim($datos['username'])),
+                'email' => strtolower(trim($datos['email'])),
+                'password_hash' => $hashArgon2id,
+                'telefono' => !empty($datos['telefono']) ? trim($datos['telefono']) : null,
+                'estado' => 'ACTIVO',
+                'activo_2fa' => false,
+                'requiere_cambio_password' => false,
+            ]);
 
-        // Registrar alta de cuenta en seguridad.bitacora_eventos para el visor de ciberseguridad
-        DB::statement(
-            'SELECT seguridad.fn_registrar_evento(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::uuid, ?, ?)',
-            [
-                'SEGURIDAD',
-                $usuario->id_usuario,
-                'SEGURIDAD',
-                'usuarios',
-                $usuario->id_usuario,
-                'REGISTRO_PRIMERA_VEZ',
-                null,
-                'ACTIVO',
-                $request->ip(),
-                $request->userAgent(),
-                null,
-                'MEDIA',
-                "Auto-registro de primera vez para {$usuario->username} con rol {$rolInicial->codigo}",
-            ]
-        );
+            // Registrar alta de cuenta en seguridad.bitacora_eventos para el visor de ciberseguridad
+            DB::statement(
+                'SELECT seguridad.fn_registrar_evento(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::uuid, ?, ?)',
+                [
+                    'SEGURIDAD',
+                    $nuevoUsuario->id_usuario,
+                    'SEGURIDAD',
+                    'usuarios',
+                    $nuevoUsuario->id_usuario,
+                    'REGISTRO_PRIMERA_VEZ',
+                    null,
+                    'ACTIVO',
+                    $request->ip(),
+                    $request->userAgent(),
+                    null,
+                    'MEDIA',
+                    "Auto-registro de primera vez para {$nuevoUsuario->username} con rol {$rolInicial->codigo}",
+                ]
+            );
+
+            return $nuevoUsuario;
+        });
 
         return redirect()
             ->route('login')
-            ->with('status', 'Cuenta registrada correctamente. Ya puedes iniciar sesión con tu usuario y contraseña.');
+            ->with(
+                'status',
+                "Cuenta {$usuario->username} registrada correctamente. Inicia sesión con tu contraseña para continuar con la verificación 2FA."
+            );
     }
 }

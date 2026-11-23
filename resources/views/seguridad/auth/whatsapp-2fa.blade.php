@@ -47,9 +47,9 @@
 
             <button type="submit"
                     id="btn-verificar-otp"
-                    style="background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important; opacity: 1 !important; border: 1px solid #10b981 !important;"
-                    class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold shadow-md transition duration-200 cursor-pointer">
-                Verificar código
+                    class="btn-ness-primario">
+                <span>Verificar código</span>
+                <span aria-hidden="true">→</span>
             </button>
         </form>
 
@@ -68,29 +68,49 @@
 </div>
 
 <style>
-    #btn-verificar-otp,
+    #btn-verificar-otp.btn-ness-primario,
     form #btn-verificar-otp,
     button#btn-verificar-otp[type="submit"] {
-        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+        padding: 13px 20px !important;
+        border-radius: 12px !important;
+        border: none !important;
+        background-color: #0b4a96 !important;
+        background-image: linear-gradient(90deg, #073977 0%, #0b53a6 55%, #0284c7 100%) !important;
         color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.2px !important;
+        box-shadow: 0 8px 18px rgba(8, 59, 122, 0.28) !important;
         opacity: 1 !important;
-        border: 1px solid #10b981 !important;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
-        transition: all 0.2s ease !important;
+        cursor: pointer !important;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease !important;
     }
 
-    #btn-verificar-otp:hover {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    #btn-verificar-otp.btn-ness-primario:hover,
+    button#btn-verificar-otp[type="submit"]:hover {
+        filter: brightness(1.06) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 10px 22px rgba(2, 132, 199, 0.34) !important;
         color: #ffffff !important;
-        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35) !important;
+        -webkit-text-fill-color: #ffffff !important;
     }
 
-    #btn-verificar-otp::before,
-    #btn-verificar-otp::after {
+    #btn-verificar-otp.btn-ness-primario:active,
+    button#btn-verificar-otp[type="submit"]:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 4px 10px rgba(8, 59, 122, 0.25) !important;
+    }
+
+    #btn-verificar-otp.btn-ness-primario::before,
+    #btn-verificar-otp.btn-ness-primario::after {
         display: none !important;
         content: none !important;
     }
 </style>
 @endsection
-
-

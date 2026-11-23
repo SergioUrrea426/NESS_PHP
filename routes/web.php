@@ -69,9 +69,6 @@ Route::middleware(['auth', 'verified', CheckSessionTimeout::class, SetPostgresSe
     Route::patch('/seguridad/usuarios/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])
         ->name('seguridad.usuarios.toggle-estado');
 
-    // Route::get('/comercial/clientes', [ClientesController::class, 'index'])
-    //     ->name('comercial.clientes.index');
-
     // Monitoreo de Seguridad y Ciberseguridad (solo ADSIS)
     Route::prefix('seguridad/ciberseguridad')
         ->name('seguridad.ciberseguridad.')
