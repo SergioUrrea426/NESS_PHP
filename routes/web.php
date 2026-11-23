@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Comercial\ClientesController;
 use App\Http\Controllers\Seguridad\AuthController;
 use App\Http\Controllers\Seguridad\CiberseguridadController;
+use App\Http\Controllers\Seguridad\RegistroController;
 use App\Http\Controllers\Seguridad\TwoFactorController;
 use App\Http\Controllers\Seguridad\UsuarioController;
 use App\Http\Middleware\CheckSessionTimeout;
@@ -14,10 +14,13 @@ use Illuminate\Support\Facades\Schema;
 
 Route::inertia('/', 'welcome')->name('home');
 
-// Rutas públicas de autenticación y 2FA WhatsApp
+// Rutas públicas de autenticación, registro y 2FA WhatsApp
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
+
+    Route::get('/registro', [RegistroController::class, 'show'])->name('register.show');
+    
 
     Route::get('/2fa/whatsapp', [TwoFactorController::class, 'show'])->name('2fa.whatsapp.show');
     Route::post('/2fa/whatsapp/verificar', [TwoFactorController::class, 'verify'])->name('2fa.whatsapp.verify');

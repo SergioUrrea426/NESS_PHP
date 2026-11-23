@@ -25,6 +25,12 @@
         <form id="loginForm" method="POST" action="{{ route('login.attempt') }}" class="px-8 pb-8 space-y-4" novalidate>
             @csrf
 
+            @if (session('status'))
+                <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-medium">
+                    {{ session('status') }}
+                </div>
+            @endif
+
             <div>
                 <label for="username" class="block text-sm font-medium text-slate-700 mb-1">
                     Usuario o correo electrónico
@@ -85,6 +91,17 @@
                 <span id="btnText">Ingresar al Sistema</span>
                 <i class="fa-solid fa-arrow-right text-xs" id="btnIcon"></i>
             </button>
+
+            {{-- Acceso de Registro por Primera Vez --}}
+            <div class="pt-1 text-center">
+                <p class="text-xs text-slate-500 mb-2">¿Es tu primera vez en la plataforma?</p>
+                <a href="{{ route('register.show') }}"
+                   id="btnRegistroPrimeraVez"
+                   class="w-full py-2.5 px-4 rounded-lg border border-[#0b3b80]/30 bg-slate-50 hover:bg-sky-50 text-[#0b3b80] hover:text-[#072758] font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200">
+                    <i class="fa-solid fa-user-plus text-xs"></i>
+                    <span>Registrarse por primera vez</span>
+                </a>
+            </div>
 
             <div class="relative my-5">
                 <div class="absolute inset-0 flex items-center">
