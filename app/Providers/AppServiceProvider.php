@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+
+use App\Policies\Seguridad\UsuarioPolicy;
 use App\Contracts\WhatsAppOtpSenderInterface;
 use App\Models\Seguridad\Rol;
 use App\Models\Seguridad\Usuario;
@@ -63,6 +65,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::policy(Usuario::class, UsuarioPolicy::class);
+
+        Gate::define('gestionar-usuarios', function ($usuario) {
+            $codigo = strtoupper((string) optional($usuario->rol)->codigo);
+
+            return in_array($codigo, ['ADSIS', 'AC'], true);
+        });
+
         Gate::define('ver-ciberseguridad', function ($usuario) {
             return strtoupper((string) optional($usuario->rol)->codigo) === 'ADSIS';
         });
@@ -73,13 +83,13 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $identificador = strtolower(trim((string) $request->input('username', '')));
-            return Limit::perMinute(5)->by($identificador.'|'.$request->ip());
+            return Limit::perMinute(5)->by($identificador . '|' . $request->ip());
         });
 
         RateLimiter::for('2fa', function (Request $request) {
             $pending = $request->session()->get('ness_2fa_pending');
             $usuarioId = is_array($pending) ? (int) ($pending['id_usuario'] ?? 0) : 0;
-            return Limit::perMinute(5)->by($usuarioId.'|'.$request->ip());
+            return Limit::perMinute(5)->by($usuarioId . '|' . $request->ip());
         });
     }
 

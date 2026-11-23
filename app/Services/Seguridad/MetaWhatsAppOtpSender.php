@@ -30,13 +30,22 @@ class MetaWhatsAppOtpSender implements WhatsAppOtpSenderInterface
         }
 
         if (empty($telefonoNormalizado)) {
+            Log::warning('[NESS 2FA WhatsApp - META] El usuario no tiene teléfono válido.', [
+                'usuario_id' => $usuario->id_usuario,
+                'username' => $usuario->username,
+            ]);
             return false;
         }
 
-        $phoneNumberId = config('ness_seguridad.whatsapp.phone_number_id');
-        $token = config('ness_seguridad.whatsapp.token');
-        $template = config('ness_seguridad.whatsapp.template_name');
-        $lang = config('ness_seguridad.whatsapp.language_code');
+        $phoneNumberId = (string) config('ness_seguridad.whatsapp.phone_number_id');
+        $token = (string) config('ness_seguridad.whatsapp.token');
+        $template = (string) config('ness_seguridad.whatsapp.template_name');
+        $lang = (string) config('ness_seguridad.whatsapp.language_code');
+
+        if ($phoneNumberId === '' || $token === '') {
+            Log::error('[NESS 2FA WhatsApp - META] Faltan NESS_WHATSAPP_PHONE_ID o NESS_WHATSAPP_TOKEN en .env.');
+            return false;
+        }
 
         $response = Http::withToken($token)
             ->timeout(10)
@@ -59,6 +68,15 @@ class MetaWhatsAppOtpSender implements WhatsAppOtpSenderInterface
                 ],
             ]);
 
-        return $response->successful();
+        if (!$response->successful()) {
+            Log::error('[NESS 2FA WhatsApp - META] Error al enviar mensaje OTP.', [
+                'usuario_id' => $usuario->id_usuario,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return false;
+        }
+
+        return true;
     }
 }

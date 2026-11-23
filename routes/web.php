@@ -12,6 +12,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Middleware\EnsureRoleHierarchyAccess;
+
 
 Route::inertia('/', 'welcome')->name('home');
 
@@ -127,6 +129,39 @@ Route::middleware(['auth', CheckSessionTimeout::class, SetPostgresSessionContext
         ->group(function () {
             Route::get('/', [CiberseguridadController::class, 'index'])->name('index');
         });
+    Route::prefix('seguridad/usuarios')
+        ->name('seguridad.usuarios.')
+        ->middleware(EnsureRoleHierarchyAccess::class . ':ADSIS,AC')
+        ->group(function () {
+            Route::get('/', [UsuarioController::class, 'index'])->name('index');
+            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
+        });
+
+    Route::prefix('seguridad/ciberseguridad')
+        ->name('seguridad.ciberseguridad.')
+        ->middleware('can:ver-ciberseguridad')
+        ->group(function () {
+            Route::get('/', [CiberseguridadController::class, 'index'])->name('index');
+        });
+
+    Route::prefix('seguridad/usuarios')
+        ->name('seguridad.usuarios.')
+        ->middleware(EnsureRoleHierarchyAccess::class . ':ADSIS,AC')
+        ->group(function () {
+            Route::get('/', [UsuarioController::class, 'index'])->name('index');
+            Route::post('/', [UsuarioController::class, 'store'])->name('store');
+            Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
+            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
+        });
+    Route::prefix('seguridad/usuarios')
+        ->name('seguridad.usuarios.')
+        ->middleware(EnsureRoleHierarchyAccess::class . ':ADSIS,AC')
+        ->group(function () {
+            Route::get('/', [UsuarioController::class, 'index'])->name('index');
+            Route::post('/', [UsuarioController::class, 'store'])->name('store');
+            Route::put('/{usuario}', [UsuarioController::class, 'update'])->name('update');
+            Route::patch('/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])->name('toggle-estado');
+        });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';

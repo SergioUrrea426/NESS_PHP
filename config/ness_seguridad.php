@@ -1,13 +1,8 @@
 <?php
 
-//==================================================================
-//CONFIGURACION DE SEGURIDAD Y WHATTSAPP
-//Cumple con RNF-004 (30 MIN DE INACTIVIDAD)
-//CUMPLE CON (PARAMETROS EN .ENV,. SIN SECRETOS EN EL REPOSITORIO) 
-//RF-005 (2FA SIN GUARDAR OTP en DB).
-//===================================================================
-
 // config/ness_seguridad.php
+// Cumple con RNF-004 (30 min de inactividad), RNF-040 (parámetros en .env, sin secretos en repositorio)
+// y RF-005 (2FA sin guardar OTP en PostgreSQL).
 
 return [
     'max_intentos_login' => (int) env('NESS_MAX_INTENTOS_LOGIN', 5),
@@ -32,17 +27,3 @@ return [
         'language_code' => env('NESS_WHATSAPP_LANG', 'es_CO'),
     ],
 ];
-
-
-//CONFIGURACION DEL .ENV Y EL .ENV.EXAMPLE PARA LOS DESARROLLADORES NICOLD Y SERGIO Y ERIC
-//APP_TIMEZONE=America/Bogota
-//NESS_MAX_INTENTOS_LOGIN=5
-//NESS_MINUTOS_BLOQUEO_LOGIN=15
-//NESS_INACTIVIDAD_MINUTOS=30
-//NESS_ROLES_2FA_OBLIGATORIO=ADSIS
-//NESS_OTP_TTL_SEGUNDOS=300
-//NESS_WHATSAPP_DRIVER=log
-//NESS_WHATSAPP_TOKEN=
-//NESS_WHATSAPP_PHONE_ID=
-//NESS_WHATSAPP_TEMPLATE=ness_otp_2fa
-//NESS_WHATSAPP_LANG=es_CO

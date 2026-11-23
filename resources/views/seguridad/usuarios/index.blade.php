@@ -164,6 +164,9 @@
             font-weight: 600;
             cursor: pointer;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         .btn-secondary {
             background: #ffffff;
@@ -173,6 +176,7 @@
             padding: 8px 14px;
             font-size: 0.82rem;
             text-decoration: none;
+            cursor: pointer;
         }
         .search-box {
             display: flex;
@@ -225,6 +229,11 @@
         }
         .badge-done { background: #dcfce7; color: #166534; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
+        .row-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
 
         @media (max-width: 900px) {
             .dashboard-shell { flex-direction: column; }
@@ -233,6 +242,13 @@
     </style>
 </head>
 <body>
+@php
+    $usuarioActual = auth()->user();
+    $puedeGestionarUsuarios = \Illuminate\Support\Facades\Gate::allows('gestionar-usuarios');
+    $puedeVerCiberseguridad = \Illuminate\Support\Facades\Gate::allows('ver-ciberseguridad');
+    $puedeCrearUsuario = \Illuminate\Support\Facades\Gate::allows('create', \App\Models\Seguridad\Usuario::class);
+@endphp
+
 <div class="dashboard-shell">
     <aside class="dashboard-sidebar">
         <div>
@@ -249,8 +265,8 @@
                 <div class="sidebar-user-avatar"><i data-lucide="user"></i></div>
                 <div>
                     <div class="sidebar-user-name">
-                        {{ auth()->user()->nombres ?? auth()->user()->username ?? 'Administrador' }}
-                        <span class="sidebar-badge">{{ optional(auth()->user()->rol)->codigo ?? 'ADSIS' }}</span>
+                        {{ $usuarioActual?->nombres ?? $usuarioActual?->username ?? 'Administrador' }}
+                        <span class="sidebar-badge">{{ optional($usuarioActual?->rol)->codigo ?? 'Usuario' }}</span>
                     </div>
                     <div class="sidebar-status">● En línea</div>
                 </div>
@@ -264,13 +280,17 @@
                 <a href="#" class="sidebar-link"><i data-lucide="target"></i><span>Oportunidades</span></a>
             </nav>
 
-            <div class="sidebar-section-title">Configuración</div>
-            <nav class="sidebar-nav">
-                <a href="{{ route('seguridad.usuarios.index') }}" class="sidebar-link active"><i data-lucide="user-cog"></i><span>Usuarios y roles</span></a>
-                @if (Route::has('seguridad.ciberseguridad.index'))
-                    <a href="{{ route('seguridad.ciberseguridad.index') }}" class="sidebar-link"><i data-lucide="shield-check"></i><span>Seguridad y Permisos</span></a>
-                @endif
-            </nav>
+            @if ($puedeGestionarUsuarios || $puedeVerCiberseguridad)
+                <div class="sidebar-section-title">Configuración</div>
+                <nav class="sidebar-nav">
+                    @if ($puedeGestionarUsuarios && Route::has('seguridad.usuarios.index'))
+                        <a href="{{ route('seguridad.usuarios.index') }}" class="sidebar-link active"><i data-lucide="user-cog"></i><span>Usuarios y roles</span></a>
+                    @endif
+                    @if ($puedeVerCiberseguridad && Route::has('seguridad.ciberseguridad.index'))
+                        <a href="{{ route('seguridad.ciberseguridad.index') }}" class="sidebar-link"><i data-lucide="shield-check"></i><span>Seguridad y Permisos</span></a>
+                    @endif
+                </nav>
+            @endif
         </div>
 
         <div class="usuarios-sidebar-footer">
@@ -293,6 +313,13 @@
                     <h1>Usuarios y roles</h1>
                     <p>Administra las cuentas, responsabilidades y estado de acceso del equipo NESS SOFT.</p>
                 </div>
+
+                @if ($puedeCrearUsuario)
+                    <button type="button" class="btn-primary" id="btn-abrir-crear-usuario">
+                        <i data-lucide="user-plus"></i>
+                        <span>Nuevo usuario</span>
+                    </button>
+                @endif
             </header>
 
             @if (session('status'))
@@ -304,6 +331,12 @@
             @if (session('error'))
                 <div class="users-alert info" role="alert" aria-live="polite">
                     {{ session('error') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="users-alert info" role="alert" aria-live="polite">
+                    {{ $errors->first() }}
                 </div>
             @endif
 
@@ -380,6 +413,8 @@
                                     $fechaFormateada = is_object($ultimoAcceso) && method_exists($ultimoAcceso, 'format')
                                         ? $ultimoAcceso->format('d/m/Y H:i')
                                         : ($ultimoAcceso ? (string) $ultimoAcceso : 'Sin acceso');
+                                    $puedeEditar = \Illuminate\Support\Facades\Gate::allows('update', $usuario);
+                                    $puedeAlternar = \Illuminate\Support\Facades\Gate::allows('toggleEstado', $usuario);
                                 @endphp
                                 <tr>
                                     <td>
@@ -399,15 +434,40 @@
                                     </td>
                                     <td>{{ $fechaFormateada }}</td>
                                     <td>
-                                        <form method="POST" action="{{ route('seguridad.usuarios.toggle-estado', $usuario) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button class="icon-action {{ $estaActivo ? 'danger' : 'success' }}"
-                                                    type="submit"
-                                                    title="{{ $estaActivo ? 'Desactivar cuenta' : 'Activar cuenta' }}">
-                                                <i data-lucide="{{ $estaActivo ? 'user-x' : 'user-check' }}"></i>
-                                            </button>
-                                        </form>
+                                        @if ($puedeEditar || $puedeAlternar)
+                                            <div class="row-actions">
+                                                @if ($puedeEditar)
+                                                    <button
+                                                        type="button"
+                                                        class="icon-action btn-editar-usuario"
+                                                        title="Editar usuario o rol"
+                                                        data-update-url="{{ route('seguridad.usuarios.update', $usuario) }}"
+                                                        data-nombres="{{ $usuario->nombres }}"
+                                                        data-username="{{ $usuario->username }}"
+                                                        data-email="{{ $usuario->email }}"
+                                                        data-telefono="{{ $usuario->telefono }}"
+                                                        data-id-rol="{{ $usuario->id_rol }}"
+                                                        data-estado="{{ strtoupper((string) $usuario->estado) }}"
+                                                    >
+                                                        <i data-lucide="pencil"></i>
+                                                    </button>
+                                                @endif
+
+                                                @if ($puedeAlternar)
+                                                    <form method="POST" action="{{ route('seguridad.usuarios.toggle-estado', $usuario) }}" style="margin:0;">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button class="icon-action {{ $estaActivo ? 'danger' : 'success' }}"
+                                                                type="submit"
+                                                                title="{{ $estaActivo ? 'Desactivar cuenta' : 'Activar cuenta' }}">
+                                                            <i data-lucide="{{ $estaActivo ? 'user-x' : 'user-check' }}"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span>—</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
@@ -423,7 +483,187 @@
     </main>
 </div>
 
+@if ($puedeCrearUsuario)
+<div id="modal-crear-usuario" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#fff; border-radius:18px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2 style="margin:0; font-size:1.15rem;">Crear usuario y asignar rol</h2>
+            <button type="button" id="btn-cerrar-crear-usuario" class="btn-secondary">Cerrar</button>
+        </div>
+
+        <form method="POST" action="{{ route('seguridad.usuarios.store') }}">
+            @csrf
+            <div style="display:grid; gap:12px;">
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Nombres completos</label>
+                    <input type="text" name="nombres" value="{{ old('nombres') }}" required class="form-control" style="width:100%; border-radius:10px;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Usuario (username)</label>
+                        <input type="text" name="username" value="{{ old('username') }}" required class="form-control" style="width:100%; border-radius:10px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Teléfono</label>
+                        <input type="text" name="telefono" value="{{ old('telefono') }}" class="form-control" style="width:100%; border-radius:10px;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Correo electrónico</label>
+                    <input type="email" name="email" value="{{ old('email') }}" required class="form-control" style="width:100%; border-radius:10px;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Rol asignado</label>
+                        <select name="id_rol" required class="form-control" style="width:100%; border-radius:10px;">
+                            @foreach ($roles as $rol)
+                                <option value="{{ $rol->id_rol }}" @selected((string) old('id_rol') === (string) $rol->id_rol)>
+                                    {{ $rol->codigo }} - {{ $rol->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Estado inicial</label>
+                        <select name="estado" required class="form-control" style="width:100%; border-radius:10px;">
+                            <option value="ACTIVO" @selected(old('estado', 'ACTIVO') === 'ACTIVO')>ACTIVO</option>
+                            <option value="INACTIVO" @selected(old('estado') === 'INACTIVO')>INACTIVO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Contraseña inicial (mín. 8 caracteres)</label>
+                    <input type="password" name="password" required minlength="8" class="form-control" style="width:100%; border-radius:10px;">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+                <button type="submit" class="btn-primary">Guardar usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
+<div id="modal-editar-usuario" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); z-index:999; align-items:center; justify-content:center; padding:16px;">
+    <div style="background:#fff; border-radius:18px; max-width:520px; width:100%; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.25);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2 style="margin:0; font-size:1.15rem;">Editar usuario y rol</h2>
+            <button type="button" id="btn-cerrar-editar-usuario" class="btn-secondary">Cerrar</button>
+        </div>
+
+        <form method="POST" id="form-editar-usuario" action="{{ old('_edit_url', '') }}">
+            @csrf
+            @method('PUT')
+            <input type="hidden" name="_edit_url" id="edit-url-hidden" value="{{ old('_edit_url', '') }}">
+            <div style="display:grid; gap:12px;">
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Nombres completos</label>
+                    <input type="text" name="nombres" id="edit-nombres" value="{{ old('nombres') }}" required class="form-control" style="width:100%; border-radius:10px;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Usuario (username)</label>
+                        <input type="text" name="username" id="edit-username" value="{{ old('username') }}" required class="form-control" style="width:100%; border-radius:10px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Teléfono</label>
+                        <input type="text" name="telefono" id="edit-telefono" value="{{ old('telefono') }}" class="form-control" style="width:100%; border-radius:10px;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Correo electrónico</label>
+                    <input type="email" name="email" id="edit-email" value="{{ old('email') }}" required class="form-control" style="width:100%; border-radius:10px;">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Rol asignado</label>
+                        <select name="id_rol" id="edit-id-rol" required class="form-control" style="width:100%; border-radius:10px;">
+                            @foreach ($roles as $rol)
+                                <option value="{{ $rol->id_rol }}" @selected((string) old('id_rol') === (string) $rol->id_rol)>
+                                    {{ $rol->codigo }} - {{ $rol->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Estado</label>
+                        <select name="estado" id="edit-estado" required class="form-control" style="width:100%; border-radius:10px;">
+                            <option value="ACTIVO" @selected(old('estado', 'ACTIVO') === 'ACTIVO')>ACTIVO</option>
+                            <option value="INACTIVO" @selected(old('estado') === 'INACTIVO')>INACTIVO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px;">Nueva contraseña (opcional, mín. 8 caracteres)</label>
+                    <input type="password" name="password" minlength="8" placeholder="Dejar en blanco para conservar actual" class="form-control" style="width:100%; border-radius:10px;">
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+                <button type="submit" class="btn-primary">Actualizar usuario</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="{{ asset('js/Usuarios.js') }}"></script>
-<script>lucide.createIcons();</script>
+<script>
+lucide.createIcons();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const modalCrear = document.getElementById('modal-crear-usuario');
+    const btnAbrirCrear = document.getElementById('btn-abrir-crear-usuario');
+    const btnCerrarCrear = document.getElementById('btn-cerrar-crear-usuario');
+
+    if (btnAbrirCrear && modalCrear) {
+        btnAbrirCrear.addEventListener('click', () => {
+            modalCrear.style.display = 'flex';
+        });
+    }
+    if (btnCerrarCrear && modalCrear) {
+        btnCerrarCrear.addEventListener('click', () => {
+            modalCrear.style.display = 'none';
+        });
+    }
+
+    const modalEditar = document.getElementById('modal-editar-usuario');
+    const formEditar = document.getElementById('form-editar-usuario');
+    const urlHidden = document.getElementById('edit-url-hidden');
+    const btnCerrarEditar = document.getElementById('btn-cerrar-editar-usuario');
+
+    document.querySelectorAll('.btn-editar-usuario').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (!modalEditar || !formEditar) return;
+            const updateUrl = btn.dataset.updateUrl || '';
+            formEditar.action = updateUrl;
+            if (urlHidden) {
+                urlHidden.value = updateUrl;
+            }
+            document.getElementById('edit-nombres').value = btn.dataset.nombres || '';
+            document.getElementById('edit-username').value = btn.dataset.username || '';
+            document.getElementById('edit-email').value = btn.dataset.email || '';
+            document.getElementById('edit-telefono').value = btn.dataset.telefono || '';
+            document.getElementById('edit-id-rol').value = btn.dataset.idRol || '';
+            document.getElementById('edit-estado').value = btn.dataset.estado || 'ACTIVO';
+            modalEditar.style.display = 'flex';
+        });
+    });
+
+    if (btnCerrarEditar && modalEditar) {
+        btnCerrarEditar.addEventListener('click', () => {
+            modalEditar.style.display = 'none';
+        });
+    }
+});
+</script>
 </body>
 </html>

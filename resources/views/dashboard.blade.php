@@ -65,6 +65,8 @@
 
     @php
         $usuarioActual = auth()->user();
+        $puedeGestionarUsuarios = \Illuminate\Support\Facades\Gate::allows('gestionar-usuarios');
+        $puedeVerCiberseguridad = \Illuminate\Support\Facades\Gate::allows('ver-ciberseguridad');
     @endphp
 
     <aside class="sidebar" aria-label="Navegación principal">
@@ -121,27 +123,29 @@
                 </ul>
             </nav>
 
-            <p class="nav-section-title">Configuración</p>
-            <nav>
-                <ul class="nav-menu">
-                    @if (Route::has('seguridad.usuarios.index'))
-                        <li>
-                            <a href="{{ route('seguridad.usuarios.index') }}" class="nav-link">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-user-cog"></use></svg>
-                                <span>Usuarios y roles</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Route::has('seguridad.ciberseguridad.index'))
-                        <li>
-                            <a href="{{ route('seguridad.ciberseguridad.index') }}" class="nav-link">
-                                <svg class="icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg>
-                                <span>Seguridad y permisos</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </nav>
+            @if ($puedeGestionarUsuarios || $puedeVerCiberseguridad)
+                <p class="nav-section-title">Configuración</p>
+                <nav>
+                    <ul class="nav-menu">
+                        @if ($puedeGestionarUsuarios && Route::has('seguridad.usuarios.index'))
+                            <li>
+                                <a href="{{ route('seguridad.usuarios.index') }}" class="nav-link">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-user-cog"></use></svg>
+                                    <span>Usuarios y roles</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if ($puedeVerCiberseguridad && Route::has('seguridad.ciberseguridad.index'))
+                            <li>
+                                <a href="{{ route('seguridad.ciberseguridad.index') }}" class="nav-link">
+                                    <svg class="icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg>
+                                    <span>Seguridad y permisos</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </nav>
+            @endif
         </div>
 
         <div class="sidebar-footer-stack">
@@ -226,12 +230,21 @@
                 <svg class="summary-icon" aria-hidden="true"><use href="#icon-users"></use></svg>
             </a>
 
-            <a href="{{ Route::has('seguridad.usuarios.index') ? route('seguridad.usuarios.index') : '#' }}" class="client-summary-card dashboard-info-card">
-                <span>Administración de accesos</span>
-                <strong>Gestión de usuarios y roles</strong>
-                <p class="dashboard-card-desc">Administra cuentas, roles y estado de acceso del equipo.</p>
-                <svg class="summary-icon" aria-hidden="true"><use href="#icon-user-cog"></use></svg>
-            </a>
+            @if ($puedeGestionarUsuarios && Route::has('seguridad.usuarios.index'))
+                <a href="{{ route('seguridad.usuarios.index') }}" class="client-summary-card dashboard-info-card">
+                    <span>Administración de accesos</span>
+                    <strong>Gestión de usuarios y roles</strong>
+                    <p class="dashboard-card-desc">Administra cuentas, roles y estado de acceso del equipo.</p>
+                    <svg class="summary-icon" aria-hidden="true"><use href="#icon-user-cog"></use></svg>
+                </a>
+            @else
+                <div class="client-summary-card dashboard-info-card">
+                    <span>Perfil y alcance</span>
+                    <strong>Rol {{ $usuarioActual?->rol?->codigo ?? 'Usuario' }}</strong>
+                    <p class="dashboard-card-desc">Vista operativa ajustada a tus permisos y nivel jerárquico.</p>
+                    <svg class="summary-icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg>
+                </div>
+            @endif
         </section>
     </main>
 
