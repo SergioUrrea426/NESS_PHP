@@ -22,6 +22,18 @@
             @endif
         </div>
 
+        @if($errors->any())
+            <div class="mb-4 rounded-xl bg-rose-500/15 border border-rose-500/30 px-4 py-3 text-xs text-rose-200">
+                {{ $errors->first() }}
+            </div>
+        @endif
+
+        @if(session('status'))
+            <div class="mb-4 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-4 py-3 text-xs text-emerald-200">
+                {{ session('status') }}
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('2fa.whatsapp.verify') }}" class="space-y-4">
             @csrf
             <div>
@@ -34,15 +46,19 @@
             </div>
 
             <button type="submit"
-                    class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition">
-                Verificar e ingresar
+                    id="btn-verificar-otp"
+                    style="background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important; opacity: 1 !important; border: 1px solid #10b981 !important;"
+                    class="w-full py-2.5 px-4 rounded-xl text-sm font-semibold shadow-md transition duration-200 cursor-pointer">
+                Verificar código
             </button>
         </form>
 
         <div class="mt-4 flex items-center justify-between text-xs text-slate-400">
             <form method="POST" action="{{ route('2fa.whatsapp.resend') }}">
                 @csrf
-                <button type="submit" class="text-sky-400 hover:underline">
+                <button type="submit"
+                        style="color: #38bdf8 !important; background: transparent !important; opacity: 1 !important;"
+                        class="hover:underline cursor-pointer">
                     Reenviar código por WhatsApp
                 </button>
             </form>
@@ -50,4 +66,31 @@
         </div>
     </div>
 </div>
+
+<style>
+    #btn-verificar-otp,
+    form #btn-verificar-otp,
+    button#btn-verificar-otp[type="submit"] {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+        color: #ffffff !important;
+        opacity: 1 !important;
+        border: 1px solid #10b981 !important;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    #btn-verificar-otp:hover {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: #ffffff !important;
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35) !important;
+    }
+
+    #btn-verificar-otp::before,
+    #btn-verificar-otp::after {
+        display: none !important;
+        content: none !important;
+    }
+</style>
 @endsection
+
+

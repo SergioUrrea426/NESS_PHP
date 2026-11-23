@@ -19,7 +19,6 @@
         </a>
     </header>
 
-    {{-- KPIs --}}
     <section class="kpi-grid" aria-label="Indicadores de ciberseguridad">
         <div class="kpi-card">
             <div class="sec-kpi-label">Eventos hoy</div>
@@ -39,7 +38,6 @@
         </div>
     </section>
 
-    {{-- Filtros --}}
     <form method="GET" action="{{ route('seguridad.ciberseguridad.index') }}" id="sec-filtros-form" class="controls-card">
         <select name="tipo_evento" id="sec-tipo-evento" class="form-control" aria-label="Filtrar por tipo de evento">
             <option value="">Todos los tipos</option>
@@ -69,7 +67,6 @@
 
     <div id="sec-copy-feedback" class="sec-toast" role="status" aria-live="polite"></div>
 
-    {{-- Cuentas con intentos fallidos o bloqueos --}}
     <section class="table-card sec-section-gap">
         <div class="table-heading">
             <div>
@@ -119,7 +116,6 @@
         </div>
     </section>
 
-    {{-- Bitácora inmutable --}}
     <section class="table-card">
         <div class="table-heading">
             <div>
