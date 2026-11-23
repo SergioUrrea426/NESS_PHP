@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Comercial\ClientesController;
 use App\Http\Controllers\Seguridad\AuthController;
 use App\Http\Controllers\Seguridad\CiberseguridadController;
 use App\Http\Controllers\Seguridad\RegistroController;
@@ -9,6 +8,7 @@ use App\Http\Controllers\Seguridad\UsuarioController;
 use App\Http\Middleware\CheckSessionTimeout;
 use App\Http\Middleware\SetPostgresSessionContext;
 use App\Models\Seguridad\Usuario;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
@@ -31,7 +31,7 @@ Route::middleware('guest')->group(function () {
         ->name('2fa.whatsapp.verify');
     Route::post('/2fa/whatsapp/reenviar', [TwoFactorController::class, 'resend'])
         ->middleware('throttle:2fa')
-        ->name('2fa.whatsapp.resend');
+        ->name('2fa.whatsapp.reenviar');
 });
 
 // Rutas autenticadas con inactividad y contexto PostgreSQL
@@ -70,9 +70,47 @@ Route::middleware(['auth', CheckSessionTimeout::class, SetPostgresSessionContext
         return view('dashboard', compact('kpis'));
     })->name('dashboard');
 
-    // Módulo comercial
-   // Route::get('/comercial/clientes', [ClientesController::class, 'index'])
-   //     ->name('comercial.clientes.index');
+    // Módulo comercial: renderiza la vista existente con valores por defecto mientras se integra el controlador
+    Route::get('/comercial/clientes', function () {
+        $tieneTabla = Schema::hasTable('comercial.clientes');
+
+        $totalClientes = $tieneTabla ? DB::table('comercial.clientes')->count() : 0;
+
+        $clientesActivos = 0;
+        if ($tieneTabla) {
+            if (Schema::hasColumn('comercial.clientes', 'estado')) {
+                $clientesActivos = DB::table('comercial.clientes')->where('estado', 'ACTIVO')->count();
+            } elseif (Schema::hasColumn('comercial.clientes', 'activo')) {
+                $clientesActivos = DB::table('comercial.clientes')->where('activo', true)->count();
+            }
+        }
+
+        $prospectos = ($tieneTabla && Schema::hasColumn('comercial.clientes', 'etapa'))
+            ? DB::table('comercial.clientes')->where('etapa', 'PROSPECTO')->count()
+            : 0;
+
+        $clientes = new LengthAwarePaginator(
+            collect(),
+            0,
+            15,
+            1,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        $filtros = [
+            'search' => request('search', ''),
+            'personeria' => request('personeria', ''),
+            'etapa' => request('etapa', ''),
+        ];
+
+        return view('comercial.Clientes', compact(
+            'totalClientes',
+            'clientesActivos',
+            'prospectos',
+            'clientes',
+            'filtros'
+        ));
+    })->name('comercial.clientes.index');
 
     // Usuarios y roles conectados a PostgreSQL
     Route::get('/seguridad/usuarios', [UsuarioController::class, 'index'])

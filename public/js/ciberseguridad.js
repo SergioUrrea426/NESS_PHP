@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.lucide) {
-    lucide.createIcons();
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
   }
 
   const form = document.getElementById('sec-filtros-form');
@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (feedbackBox) {
-        feedbackBox.textContent = `Hash SHA-256 copiado al portapapeles: ${hash}`;
+        feedbackBox.textContent = `✔ Hash SHA-256 copiado al portapapeles: ${hash}`;
         feedbackBox.classList.add('is-visible');
       }
     } catch (_err) {
       if (feedbackBox) {
-        feedbackBox.textContent = `Hash: ${hash}`;
+        feedbackBox.textContent = `Hash SHA-256: ${hash}`;
         feedbackBox.classList.add('is-visible');
       }
     }

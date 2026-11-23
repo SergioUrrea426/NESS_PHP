@@ -1,17 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
-  if (window.lucide) {
-    lucide.createIcons();
-  }
+    const searchInput = document.getElementById('dashboard-search');
+    const cards = [...document.querySelectorAll('.dashboard-info-card')];
 
-  const searchInput = document.getElementById('dashboard-search');
-  const cards = [...document.querySelectorAll('.dashboard-info-card')];
+    if (searchInput && cards.length > 0) {
+        searchInput.addEventListener('input', (event) => {
+            const query = event.target.value.trim().toLowerCase();
 
-  if (!searchInput) return;
-
-  searchInput.addEventListener('input', (event) => {
-    const query = event.target.value.trim().toLowerCase();
-    cards.forEach((card) => {
-      card.hidden = Boolean(query) && !card.textContent.toLowerCase().includes(query);
-    });
-  });
+            cards.forEach((card) => {
+                const text = card.textContent ? card.textContent.toLowerCase() : '';
+                card.hidden = Boolean(query) && !text.includes(query);
+            });
+        });
+    }
 });

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NESS SOFT - Directorio de clientes</title>
     @vite(['resources/css/app.css', 'resources/js/pages/clientes.tsx'])
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 </head>
 <body class="clients-page">
     <svg class="icon-sprite" aria-hidden="true" focusable="false">
@@ -72,6 +73,11 @@
             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path>
             <circle cx="12" cy="12" r="3"></circle>
         </symbol>
+        <symbol id="icon-log-out" viewBox="0 0 24 24">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+        </symbol>
     </svg>
 
     @php
@@ -82,9 +88,10 @@
         <div class="sidebar-main">
             <div class="brand-container">
                 <img
-                    src="{{ Vite::asset('resources/img/NESSlogoopti.png') }}"
+                    src="{{ asset('img/NESSlogoopti.png') }}"
                     alt="NESS SOFT"
                     class="brand-logo-img"
+                    onerror="this.style.display='none';"
                 >
             </div>
 
@@ -134,28 +141,42 @@
             <p class="nav-section-title">Configuración</p>
             <nav>
                 <ul class="nav-menu">
-                    <li>
-                        <button type="button" class="nav-link">
-                            <svg class="icon" aria-hidden="true"><use href="#icon-user-cog"></use></svg>
-                            <span>Usuarios y roles</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="nav-link">
-                            <svg class="icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg>
-                            <span>Seguridad y permisos</span>
-                        </button>
-                    </li>
+                    @if (Route::has('seguridad.usuarios.index'))
+                        <li>
+                            <a href="{{ route('seguridad.usuarios.index') }}" class="nav-link">
+                                <svg class="icon" aria-hidden="true"><use href="#icon-user-cog"></use></svg>
+                                <span>Usuarios y roles</span>
+                            </a>
+                        </li>
+                    @endif
+                    @if (Route::has('seguridad.ciberseguridad.index'))
+                        <li>
+                            <a href="{{ route('seguridad.ciberseguridad.index') }}" class="nav-link">
+                                <svg class="icon" aria-hidden="true"><use href="#icon-shield-check"></use></svg>
+                                <span>Seguridad y permisos</span>
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </nav>
         </div>
 
-        <div class="sidebar-footer">
-            <svg class="icon" aria-hidden="true"><use href="#icon-shield"></use></svg>
-            <div>
-                <h4>NESS SOFT</h4>
-                <p>v1.0 Producción</p>
+        <div class="sidebar-footer-stack">
+            <div class="sidebar-footer">
+                <svg class="icon" aria-hidden="true"><use href="#icon-shield"></use></svg>
+                <div>
+                    <h4>NESS SOFT</h4>
+                    <p>v1.0 Producción</p>
+                </div>
             </div>
+
+            <form method="POST" action="{{ route('logout') }}" class="logout-form">
+                @csrf
+                <button type="submit" class="btn-sidebar-logout">
+                    <svg class="icon" aria-hidden="true"><use href="#icon-log-out"></use></svg>
+                    <span>Cerrar sesión</span>
+                </button>
+            </form>
         </div>
     </aside>
 
@@ -292,7 +313,7 @@
                                 <td>
                                     {{ $cliente->numero_documento }}
                                     @if ($cliente->digito_verificacion)
-                                        - {{ $cliente->digito_verificacion }}
+- {{ $cliente->digito_verificacion }}
                                     @endif
                                 </td>
                                 <td>

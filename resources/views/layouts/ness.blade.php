@@ -1,86 +1,61 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'NESS SOFT') — CRM y Seguridad</title>
-    @vite(['resources/css/app.css'])
-    @stack('styles')
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
-    @auth
-        <nav class="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-3">
-            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap items-center gap-3 sm:gap-6">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-2 font-bold tracking-wider text-sky-400 text-lg">
-                    <img src="{{ asset('img/logo.png') }}" alt="" class="h-8 w-8 object-contain rounded-md bg-white p-0.5">
-                    <span>NESS SOFT</span>
-                </a>
-                <a href="{{ route('dashboard') }}"
-                   class="text-sm {{ request()->routeIs('dashboard') ? 'text-white font-semibold' : 'text-slate-300 hover:text-white' }}">
-                    Panel General
-                </a>
-                <a href="{{ route('seguridad.usuarios.index') }}"
-                   class="text-sm {{ request()->routeIs('seguridad.usuarios.*') ? 'text-sky-400 font-semibold' : 'text-slate-300 hover:text-white' }}">
-                    Usuarios y roles
-                </a>
-                @can('ver-ciberseguridad')
-                    <a href="{{ route('seguridad.ciberseguridad.index') }}"
-                       class="text-sm font-medium {{ request()->routeIs('seguridad.ciberseguridad.*') ? 'text-emerald-400' : 'text-slate-300 hover:text-white' }}">
-                        Monitoreo y Ciberseguridad
-                    </a>
-                @endcan
-            </div>
-
-            <div class="flex items-center gap-3">
-                <div class="hidden sm:block text-right">
-                    <div class="text-sm font-semibold text-white">{{ auth()->user()->nombres }}</div>
-                    <div class="text-xs text-slate-400">
-                        Rol: {{ optional(auth()->user()->rol)->codigo ?? 'N/A' }}
-                        @if(auth()->user()->activo_2fa)
-                            · <span class="text-emerald-400">2FA WhatsApp Activo</span>
-                        @endif
-                    </div>
+<div class="soc-layout-shell">
+    <aside class="soc-sidebar" aria-label="Navegación principal">
+        <div>
+            <div class="soc-brand-box">
+                <div class="soc-brand-logo-wrap">
+                    <img src="{{ asset('img/NESSlogoopti.png') }}" alt="NESS SOFT" onerror="this.parentElement.style.display='none';">
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit"
-                            class="px-3 py-1.5 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/40 hover:bg-rose-600/30 text-xs font-medium">
-                        Cerrar sesión
-                    </button>
-                </form>
+                <div>
+                    <div class="soc-brand-title">NESS SOFT</div>
+                    <div class="soc-brand-sub">Security &amp; Ops</div>
+                </div>
             </div>
-            </div>
-        </nav>
-    @endauth
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        @if (session('status'))
-            <div class="mb-4 rounded-lg bg-sky-500/15 border border-sky-500/40 px-4 py-3 text-sm text-sky-200">
-                {{ session('status') }}
+            <div class="soc-operator-card">
+                <div class="soc-operator-name">
+                    {{ auth()->user()->nombres ?? auth()->user()->username ?? 'Operador' }}
+                </div>
+                <div class="soc-operator-meta">
+                    <span>● En línea</span>
+                    <span class="soc-role-pill">Rol: {{ optional(auth()->user()->rol)->codigo ?? 'ADSIS' }}</span>
+                </div>
             </div>
-        @endif
 
-        @if (session('warning'))
-            <div class="mb-4 rounded-lg bg-amber-500/15 border border-amber-500/40 px-4 py-3 text-sm text-amber-200">
-                {{ session('warning') }}
-            </div>
-        @endif
+            <div class="soc-nav-group-label">Módulos</div>
+            <nav class="soc-nav-list">
+                <a href="{{ route('dashboard') }}" class="soc-nav-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Panel General</span>
+                </a>
 
-        @if ($errors->any())
-            <div class="mb-4 rounded-lg bg-rose-500/15 border border-rose-500/40 px-4 py-3 text-sm text-rose-200">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+                @if (Route::has('seguridad.usuarios.index'))
+                    <a href="{{ route('seguridad.usuarios.index') }}" class="soc-nav-link {{ request()->routeIs('seguridad.usuarios.*') ? 'is-active' : '' }}">
+                        <i data-lucide="users"></i>
+                        <span>Usuarios y roles</span>
+                    </a>
+                @endif
 
+                @if (Route::has('seguridad.ciberseguridad.index'))
+                    <a href="{{ route('seguridad.ciberseguridad.index') }}" class="soc-nav-link {{ request()->routeIs('seguridad.ciberseguridad.*') ? 'is-active' : '' }}">
+                        <i data-lucide="shield-check"></i>
+                        <span>Monitoreo y Ciberseguridad</span>
+                    </a>
+                @endif
+            </nav>
+        </div>
+
+        <div class="soc-sidebar-footer">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="soc-logout-btn">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar sesión</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="soc-main-area">
         @yield('content')
     </main>
-
-    @stack('scripts')
-</body>
-</html>
+</div>
