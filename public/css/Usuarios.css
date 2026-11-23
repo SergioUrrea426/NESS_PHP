@@ -1,0 +1,38 @@
+@media (max-width:700px) {
+    body {
+        display: block;
+    }
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        border-radius: 0;
+    }
+
+    .sidebar-footer {
+        display: none;
+    }
+
+    .main-wrapper {
+        margin-left: 0;
+        padding: 24px 16px;
+    }
+
+    .top-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .user-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .users-management .controls-card .form-control {
+        width: 100%;
+        flex-basis: 100%;
+    }
+}

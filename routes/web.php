@@ -4,9 +4,13 @@ use App\Http\Controllers\Comercial\ClientesController;
 use App\Http\Controllers\Seguridad\AuthController;
 use App\Http\Controllers\Seguridad\CiberseguridadController;
 use App\Http\Controllers\Seguridad\TwoFactorController;
+use App\Http\Controllers\Seguridad\UsuarioController;
 use App\Http\Middleware\CheckSessionTimeout;
 use App\Http\Middleware\SetPostgresSessionContext;
+use App\Models\Seguridad\Usuario;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 Route::inertia('/', 'welcome')->name('home');
 
@@ -20,11 +24,47 @@ Route::middleware('guest')->group(function () {
     Route::post('/2fa/whatsapp/reenviar', [TwoFactorController::class, 'resend'])->name('2fa.whatsapp.resend');
 });
 
-// Rutas autenticadas con control de inactividad y contexto en PostgreSQL
+// Rutas autenticadas con inactividad y contexto PostgreSQL
 Route::middleware(['auth', 'verified', CheckSessionTimeout::class, SetPostgresSessionContext::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::inertia('/dashboard', 'dashboard')->name('dashboard');
+    // Dashboard con datos reales desde PostgreSQL
+    Route::get('/dashboard', function () {
+        $clientesTotal = Schema::hasTable('comercial.clientes')
+            ? DB::table('comercial.clientes')->count()
+            : 0;
+
+        $cotizacionesTotal = Schema::hasTable('comercial.cotizaciones')
+            ? DB::table('comercial.cotizaciones')->count()
+            : 0;
+
+        $oportunidadesTotal = Schema::hasTable('comercial.oportunidades')
+            ? DB::table('comercial.oportunidades')->count()
+            : 0;
+
+        $ventasMes = 0;
+        if (Schema::hasTable('comercial.cotizaciones')) {
+            $ventasMes = (float) DB::table('comercial.cotizaciones')
+                ->where('id_estado_cotizacion', 3)
+                ->sum('total');
+        }
+
+        $kpis = [
+            'clientes' => $clientesTotal,
+            'cotizaciones' => $cotizacionesTotal,
+            'oportunidades' => $oportunidadesTotal,
+            'ventas' => $ventasMes,
+            'usuarios_activos' => Usuario::where('estado', 'ACTIVO')->count(),
+        ];
+
+        return view('dashboard', compact('kpis'));
+    })->name('dashboard');
+
+    // Usuarios y roles conectados a PostgreSQL
+    Route::get('/seguridad/usuarios', [UsuarioController::class, 'index'])
+        ->name('seguridad.usuarios.index');
+    Route::patch('/seguridad/usuarios/{usuario}/estado', [UsuarioController::class, 'toggleEstado'])
+        ->name('seguridad.usuarios.toggle-estado');
 
     Route::get('/comercial/clientes', [ClientesController::class, 'index'])
         ->name('comercial.clientes.index');

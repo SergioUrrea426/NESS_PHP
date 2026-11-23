@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'NESS SOFT') — CRM y Seguridad</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
     @auth
@@ -14,8 +15,13 @@
                 <a href="{{ route('dashboard') }}" class="font-bold tracking-wider text-sky-400 text-lg">
                     NESS SOFT
                 </a>
-                <a href="{{ route('dashboard') }}" class="text-sm text-slate-300 hover:text-white">
+                <a href="{{ route('dashboard') }}"
+                   class="text-sm {{ request()->routeIs('dashboard') ? 'text-white font-semibold' : 'text-slate-300 hover:text-white' }}">
                     Panel General
+                </a>
+                <a href="{{ route('seguridad.usuarios.index') }}"
+                   class="text-sm {{ request()->routeIs('seguridad.usuarios.*') ? 'text-sky-400 font-semibold' : 'text-slate-300 hover:text-white' }}">
+                    Usuarios y roles
                 </a>
                 @can('ver-ciberseguridad')
                     <a href="{{ route('seguridad.ciberseguridad.index') }}"
@@ -71,5 +77,7 @@
 
         @yield('content')
     </main>
+
+    @stack('scripts')
 </body>
 </html>

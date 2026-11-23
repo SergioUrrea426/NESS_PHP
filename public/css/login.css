@@ -1,0 +1,19 @@
+.input-error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    color: #1e293b !important;
+}
+
+.input-error:focus {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
+}
+
+.input-field {
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-loading {
+    opacity: 0.8;
+    cursor: wait;
+    pointer-events: none;
+}
