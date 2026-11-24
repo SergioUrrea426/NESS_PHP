@@ -13,8 +13,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.tsx',
-                'resources/js/pages/clientes.tsx',
-                'resources/js/pages/login.tsx',
+                
+                
             ],
             refresh: true,
             fonts: [

@@ -1,48 +1,61 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<div class="soc-layout-shell">
+    <aside class="soc-sidebar" aria-label="Navegación principal">
+        <div>
+            <div class="soc-brand-box">
+                <div class="soc-brand-logo-wrap">
+                    <img src="{{ asset('img/NESSlogoopti.png') }}" alt="NESS SOFT" onerror="this.parentElement.style.display='none';">
+                </div>
+                <div>
+                    <div class="soc-brand-title">NESS SOFT</div>
+                    <div class="soc-brand-sub">Security &amp; Ops</div>
+                </div>
+            </div>
 
-        {{-- Inline script to detect system dark mode preference and apply it immediately --}}
-        <script>
-            (function() {
-                const appearance = '{{ $appearance ?? "system" }}';
+            <div class="soc-operator-card">
+                <div class="soc-operator-name">
+                    {{ auth()->user()->nombres ?? auth()->user()->username ?? 'Operador' }}
+                </div>
+                <div class="soc-operator-meta">
+                    <span>● En línea</span>
+                    <span class="soc-role-pill">Rol: {{ optional(auth()->user()->rol)->codigo ?? 'ADSIS' }}</span>
+                </div>
+            </div>
 
-                if (appearance === 'system') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            <div class="soc-nav-group-label">Módulos</div>
+            <nav class="soc-nav-list">
+                <a href="{{ route('dashboard') }}" class="soc-nav-link {{ request()->routeIs('dashboard') ? 'is-active' : '' }}">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Panel General</span>
+                </a>
 
-                    if (prefersDark) {
-                        document.documentElement.classList.add('dark');
-                    }
-                }
-            })();
-        </script>
+                @if (Route::has('seguridad.usuarios.index'))
+                    <a href="{{ route('seguridad.usuarios.index') }}" class="soc-nav-link {{ request()->routeIs('seguridad.usuarios.*') ? 'is-active' : '' }}">
+                        <i data-lucide="users"></i>
+                        <span>Usuarios y roles</span>
+                    </a>
+                @endif
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
-        <style>
-            html {
-                background-color: oklch(1 0 0);
-            }
+                @if (Route::has('seguridad.ciberseguridad.index'))
+                    <a href="{{ route('seguridad.ciberseguridad.index') }}" class="soc-nav-link {{ request()->routeIs('seguridad.ciberseguridad.*') ? 'is-active' : '' }}">
+                        <i data-lucide="shield-check"></i>
+                        <span>Monitoreo y Ciberseguridad</span>
+                    </a>
+                @endif
+            </nav>
+        </div>
 
-            html.dark {
-                background-color: oklch(0.145 0 0);
-            }
-        </style>
+        <div class="soc-sidebar-footer">
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="soc-logout-btn">
+                    <i data-lucide="log-out"></i>
+                    <span>Cerrar sesión</span>
+                </button>
+            </form>
+        </div>
+    </aside>
 
-        <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-
-        @fonts
-
-        @viteReactRefresh
-        @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
-        <x-inertia::head>
-            <title>{{ config('app.name', 'Laravel') }}</title>
-        </x-inertia::head>
-    </head>
-    <body class="font-sans antialiased">
-        <x-inertia::app />
-    </body>
-</html>
+    <main class="soc-main-area">
+        @yield('content')
+    </main>
+</div>

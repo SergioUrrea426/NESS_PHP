@@ -1,0 +1,68 @@
+.input-error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    color: #1e293b !important;
+}
+
+.input-error:focus {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
+}
+
+.input-field {
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-loading {
+    opacity: 0.8;
+    cursor: wait;
+    pointer-events: none;
+}
+
+.ness-auth-page,
+.ness-auth-card {
+    box-sizing: border-box;
+}
+
+#btn-verificar-otp,
+.btn-ness-primario {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 44px;
+    border: 0;
+    border-radius: 0.75rem;
+    background: linear-gradient(90deg, #073977 0%, #0b53a6 55%, #0284c7 100%);
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgb(8 59 122 / 28%);
+    opacity: 1;
+    cursor: pointer;
+}
+
+#btn-verificar-otp::before,
+#btn-verificar-otp::after,
+.btn-ness-primario::before,
+.btn-ness-primario::after {
+    content: none;
+}
+
+button,
+a,
+input,
+select {
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 640px) {
+    #loginForm {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    .min-h-\[82vh\] {
+        min-height: calc(100vh - 6rem);
+    }
+}
