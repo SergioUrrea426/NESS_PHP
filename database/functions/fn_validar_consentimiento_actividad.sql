@@ -1,0 +1,25 @@
+-- INACTIVE reference; intentionally commented in the source file.
+-- Function: comercial.fn_validar_consentimiento_actividad
+
+-- CREATE OR REPLACE FUNCTION comercial.fn_validar_consentimiento_actividad()
+-- RETURNS TRIGGER
+-- LANGUAGE plpgsql
+-- AS $$
+-- DECLARE
+--     v_acepta BOOLEAN;
+-- BEGIN
+--     SELECT acepta_habeas_data
+--       INTO v_acepta
+--       FROM comercial.clientes
+--      WHERE id_cliente = NEW.id_cliente;
+--
+--     IF COALESCE(v_acepta, FALSE) IS NOT TRUE THEN
+--         RAISE EXCEPTION
+--             'Contacto comercial bloqueado: el cliente ID % no tiene consentimiento de datos personales vigente (RN-09 / Ley 1581).',
+--             NEW.id_cliente
+--             USING ERRCODE = '42501';
+--     END IF;
+--
+--     RETURN NEW;
+-- END;
+-- $$;

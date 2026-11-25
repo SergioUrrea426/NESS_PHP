@@ -1,0 +1,43 @@
+-- INACTIVE reference; intentionally commented in the source file.
+-- Function: comercial.fn_auditar_habeas_data
+
+-- CREATE OR REPLACE FUNCTION comercial.fn_auditar_habeas_data()
+-- RETURNS TRIGGER
+-- LANGUAGE plpgsql
+-- AS $$
+-- DECLARE
+--     v_actor_id INT;
+--     v_ip       VARCHAR(45);
+-- BEGIN
+--     BEGIN
+--         v_actor_id := NULLIF(current_setting('app.current_user_id', true), '')::INT;
+--     EXCEPTION WHEN OTHERS THEN
+--         v_actor_id := NEW.id_responsable;
+--     END;
+--     v_ip := NULLIF(current_setting('app.client_ip', true), '');
+--
+--     IF OLD.acepta_habeas_data IS DISTINCT FROM NEW.acepta_habeas_data THEN
+--         IF NEW.acepta_habeas_data IS TRUE AND NEW.fecha_aceptacion_habeas_data IS NULL THEN
+--             NEW.fecha_aceptacion_habeas_data := (now() AT TIME ZONE 'America/Bogota');
+--         END IF;
+--
+--         PERFORM seguridad.fn_registrar_evento(
+--             'SEGURIDAD'::tipo_evento_bitacora_enum,
+--             v_actor_id,
+--             'CLIENTES',
+--             'clientes',
+--             NEW.id_cliente,
+--             CASE WHEN NEW.acepta_habeas_data THEN 'HABEAS_DATA_ACEPTADO' ELSE 'HABEAS_DATA_REVOCADO' END,
+--             OLD.acepta_habeas_data::TEXT,
+--             NEW.acepta_habeas_data::TEXT,
+--             v_ip,
+--             NULL,
+--             NULL,
+--             'ALTA',
+--             format('Consentimiento Habeas Data cliente ID %s', NEW.id_cliente)
+--         );
+--     END IF;
+--
+--     RETURN NEW;
+-- END;
+-- $$;
